@@ -21,9 +21,9 @@ This project was created to practice frontend development and showcase UI/UX des
 ---
 
 ## 📸 Screenshot
-![screenshot](screenshot1.png)
-![screenshot](screenshot2.png)
-![screenshot](screenshot3.png)
+![screenshot](https://github.com/kaushikeemishra/smart-todo/blob/main/Screenshot1.png?raw=true)
+![screenshot](https://github.com/kaushikeemishra/smart-todo/blob/main/Screenshot2.png?raw=true)
+![screenshot](https://github.com/kaushikeemishra/smart-todo/blob/main/Screenshot3.png?raw=true)
 
 ---
 
@@ -43,3 +43,4 @@ This project was created to practice frontend development and showcase UI/UX des
 1. Clone this repo:
    ```bash
    git clone https://github.com/yourusername/todo-app.git
+
