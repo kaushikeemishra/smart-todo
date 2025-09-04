@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Smart To-Do</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b132b; --surface:#1c2541; --muted:#3a506b; --text:#e6e8ee;
+  --accent:#f0a500; --radius:14px; --shadow:0 8px 24px rgba(0,0,0,.4);
+}
+[data-theme="light"]{ --bg:#f6f8fb; --surface:#ffffff; --muted:#d9e3f0; --text:#1a1a1a; --shadow:0 6px 14px rgba(0,0,0,.12);}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Inter",system-ui;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column}
+header{padding:20px;text-align:center;font-size:28px;font-weight:800;color:var(--accent);background:var(--surface);box-shadow:var(--shadow)}
+main{flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:16px;overflow-y:auto}
+section{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column}
+section h2{margin-bottom:12px;text-align:center}
+ul{list-style:none;flex:1;overflow-y:auto;padding-right:6px}
+li{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:8px 10px;background:rgba(255,255,255,.05);border-radius:var(--radius);transition:.2s}
+li.done .task{ text-decoration:line-through;color:var(--muted)}
+.task{flex:1;margin:0 8px}
+.actions button{margin-left:6px;padding:4px 8px;border:none;border-radius:6px;cursor:pointer;font-size:14px}
+.actions .del{background:#ef476f;color:#fff}
+.actions .edit{background:#2196f3;color:#fff}
+.addBar{position:sticky;bottom:0;left:0;right:0;background:var(--surface);padding:12px;display:flex;gap:8px;box-shadow:var(--shadow)}
+.addBar input,.addBar select{padding:10px;border-radius:var(--radius);border:1px solid var(--muted);flex:1;background:transparent;color:var(--text)}
+.addBar button{background:var(--accent);color:#000;border:none;padding:10px 14px;border-radius:var(--radius);font-weight:600;cursor:pointer}
+.themeToggle{position:absolute;top:20px;right:20px;background:transparent;border:1px solid var(--muted);padding:6px 10px;border-radius:8px;color:var(--text);cursor:pointer}
+@media(max-width:960px){ main{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>📝 Smart To-Do App
+  <button class="themeToggle" id="themeBtn">🌓</button>
+</header>
+
+<main>
+  <section>
+    <h2>Today</h2>
+    <ul id="today"></ul>
+  </section>
+  <section>
+    <h2>Upcoming</h2>
+    <ul id="upcoming"></ul>
+  </section>
+  <section>
+    <h2>Completed</h2>
+    <ul id="completed"></ul>
+  </section>
+</main>
+
+<div class="addBar">
+  <input type="text" id="taskText" placeholder="New task..." required>
+  <input type="date" id="taskDate">
+  <button id="addBtn">Add</button>
+</div>
+
+<script>
+let todos = JSON.parse(localStorage.getItem("smartTodos")||"[]");
+
+function save(){localStorage.setItem("smartTodos",JSON.stringify(todos));}
+function render(){
+  ["today","upcoming","completed"].forEach(id=>document.getElementById(id).innerHTML="");
+  const todayStr = new Date().toISOString().split("T")[0];
+  todos.forEach((t,i)=>{
+    const li=document.createElement("li");
+    if(t.done) li.classList.add("done");
+    li.innerHTML=`<input type="checkbox" ${t.done?"checked":""} data-idx="${i}">
+      <div class="task" contenteditable="true" data-idx="${i}">${t.text}</div>
+      <div class="actions">
+        <button class="edit" data-edit="${i}">✏️</button>
+        <button class="del" data-del="${i}">🗑</button>
+      </div>`;
+    if(t.done) document.getElementById("completed").appendChild(li);
+    else if(t.date===todayStr) document.getElementById("today").appendChild(li);
+    else document.getElementById("upcoming").appendChild(li);
+  });
+}
+document.getElementById("addBtn").onclick=()=>{
+  const text=document.getElementById("taskText").value.trim();
+  const date=document.getElementById("taskDate").value || new Date().toISOString().split("T")[0];
+  if(!text) return;
+  todos.push({text, date, done:false});
+  document.getElementById("taskText").value="";
+  save();render();
+};
+document.body.addEventListener("change",e=>{
+  if(e.target.type==="checkbox"){
+    const idx=e.target.dataset.idx;
+    todos[idx].done=e.target.checked;save();render();
+  }
+});
+document.body.addEventListener("click",e=>{
+  if(e.target.dataset.del!==undefined){
+    todos.splice(e.target.dataset.del,1);save();render();
+  }
+});
+document.body.addEventListener("click",e=>{
+  if(e.target.dataset.edit!==undefined){
+    const idx=e.target.dataset.edit;
+    const newText=prompt("Edit task:",todos[idx].text);
+    if(newText){todos[idx].text=newText;save();render();}
+  }
+});
+document.body.addEventListener("blur",e=>{
+  if(e.target.classList.contains("task")){
+    const idx=e.target.dataset.idx;
+    todos[idx].text=e.target.textContent.trim(); save();
+  }
+},true);
+
+// Theme toggle
+if(localStorage.getItem("theme")==="light") document.documentElement.setAttribute("data-theme","light");
+document.getElementById("themeBtn").onclick=()=>{
+  const root=document.documentElement;
+  if(root.getAttribute("data-theme")==="light"){root.removeAttribute("data-theme");localStorage.setItem("theme","dark");}
+  else{root.setAttribute("data-theme","light");localStorage.setItem("theme","light");}
+};
+
+render();
+</script>
+</body>
+</html>
